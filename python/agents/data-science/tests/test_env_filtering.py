@@ -17,58 +17,10 @@
 import os
 import logging
 from unittest.mock import patch
-
+from deployment.deploy import collect_environment_variables
 # Set up basic logging for the test
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-
-def collect_environment_variables(env_var_keys: list[str]) -> dict[str, str]:
-    """
-    Collect environment variables, filtering out None, empty, or whitespace-only values.
-    
-    Args:
-        env_var_keys: List of environment variable keys to collect.
-        
-    Returns:
-        Dictionary containing only environment variables with valid values.
-        
-    Note:
-        This function also deduplicates the input keys and logs which variables
-        are included or skipped during collection.
-    """
-    # Deduplicate the environment variable keys
-    unique_keys = list(dict.fromkeys(env_var_keys))
-    if len(unique_keys) != len(env_var_keys):
-        logger.info("Deduplicated %d environment variable keys to %d unique keys", 
-                   len(env_var_keys), len(unique_keys))
-    
-    env_vars = {}
-    included_vars = []
-    skipped_vars = []
-    
-    for key in unique_keys:
-        value = os.getenv(key)
-        
-        # Filter out None, empty, or whitespace-only values
-        if value is not None and value.strip():
-            env_vars[key] = value
-            included_vars.append(key)
-        else:
-            skipped_vars.append(key)
-    
-    # Log the results
-    if included_vars:
-        logger.info("Including %d environment variables: %s", 
-                   len(included_vars), ", ".join(included_vars))
-    
-    if skipped_vars:
-        logger.info("Skipping %d environment variables (None/empty/whitespace): %s", 
-                   len(skipped_vars), ", ".join(skipped_vars))
-    
-    return env_vars
-
-
 def test_filtering_functionality():
     """Test the environment variable filtering functionality."""
     print("Running environment variable filtering tests...")
