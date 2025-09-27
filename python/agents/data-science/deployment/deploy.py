@@ -146,6 +146,52 @@ def create(env_vars: dict[str, str]) -> None:
     print(f"\nSuccessfully created agent: {remote_agent.resource_name}")
 
 
+def collect_environment_variables(env_var_keys: list[str]) -> dict[str, str]:
+    """
+    Collect environment variables, filtering out None, empty, or whitespace-only values.
+    
+    Args:
+        env_var_keys: List of environment variable keys to collect.
+        
+    Returns:
+        Dictionary containing only environment variables with valid values.
+        
+    Note:
+        This function also deduplicates the input keys and logs which variables
+        are included or skipped during collection.
+    """
+    # Deduplicate the environment variable keys
+    unique_keys = list(dict.fromkeys(env_var_keys))
+    if len(unique_keys) != len(env_var_keys):
+        logger.info("Deduplicated %d environment variable keys to %d unique keys", 
+                   len(env_var_keys), len(unique_keys))
+    
+    env_vars = {}
+    included_vars = []
+    skipped_vars = []
+    
+    for key in unique_keys:
+        value = os.getenv(key)
+        
+        # Filter out None, empty, or whitespace-only values
+        if value is not None and value.strip():
+            env_vars[key] = value
+            included_vars.append(key)
+        else:
+            skipped_vars.append(key)
+    
+    # Log the results
+    if included_vars:
+        logger.info("Including %d environment variables: %s", 
+                   len(included_vars), ", ".join(included_vars))
+    
+    if skipped_vars:
+        logger.info("Skipping %d environment variables (None/empty/whitespace): %s", 
+                   len(skipped_vars), ", ".join(skipped_vars))
+    
+    return env_vars
+
+
 def delete(resource_id: str) -> None:
     """Deletes the specified agent."""
     logger.info("Attempting to delete agent: %s", resource_id)
@@ -168,7 +214,6 @@ def delete(resource_id: str) -> None:
 def main(argv: list[str]) -> None:  # pylint: disable=unused-argument
     """Main execution function."""
     load_dotenv()
-    env_vars = {}
 
     project_id = (
         FLAGS.project_id
@@ -185,20 +230,26 @@ def main(argv: list[str]) -> None:  # pylint: disable=unused-argument
         if FLAGS.bucket
         else os.getenv("GOOGLE_CLOUD_STORAGE_BUCKET", default_bucket_name)
     )
+    
+    # Define the list of environment variables to collect
     # Don't set "GOOGLE_CLOUD_PROJECT" or "GOOGLE_CLOUD_LOCATION"
     # when deploying to Agent Engine. Those are set by the backend.
-    env_vars["ROOT_AGENT_MODEL"] = os.getenv("ROOT_AGENT_MODEL")
-    env_vars["ANALYTICS_AGENT_MODEL"] = os.getenv("ANALYTICS_AGENT_MODEL")
-    env_vars["BASELINE_NL2SQL_MODEL"] = os.getenv("BASELINE_NL2SQL_MODEL")
-    env_vars["BIGQUERY_AGENT_MODEL"] = os.getenv("BIGQUERY_AGENT_MODEL")
-    env_vars["BQML_AGENT_MODEL"] = os.getenv("BQML_AGENT_MODEL")
-    env_vars["CHASE_NL2SQL_MODEL"] = os.getenv("CHASE_NL2SQL_MODEL")
-    env_vars["BQ_DATASET_ID"] = os.getenv("BQ_DATASET_ID")
-    env_vars["BQ_PROJECT_ID"] = os.getenv("BQ_PROJECT_ID")
-    env_vars["BQML_RAG_CORPUS_NAME"] = os.getenv("BQML_RAG_CORPUS_NAME")
-    env_vars["CODE_INTERPRETER_EXTENSION_NAME"] = os.getenv(
-        "CODE_INTERPRETER_EXTENSION_NAME")
-    env_vars["NL2SQL_METHOD"] = os.getenv("NL2SQL_METHOD")
+    env_var_keys = [
+        "ROOT_AGENT_MODEL",
+        "ANALYTICS_AGENT_MODEL",
+        "BASELINE_NL2SQL_MODEL",
+        "BIGQUERY_AGENT_MODEL",
+        "BQML_AGENT_MODEL",
+        "CHASE_NL2SQL_MODEL",
+        "BQ_DATASET_ID",
+        "BQ_PROJECT_ID",
+        "BQML_RAG_CORPUS_NAME",
+        "CODE_INTERPRETER_EXTENSION_NAME",
+        "NL2SQL_METHOD",
+    ]
+    
+    # Collect and filter environment variables
+    env_vars = collect_environment_variables(env_var_keys)
 
     logger.info("Using PROJECT: %s", project_id)
     logger.info("Using LOCATION: %s", location)
