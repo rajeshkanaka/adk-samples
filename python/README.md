@@ -64,7 +64,7 @@ Follow these steps to set up and run the sample agents:
 These agents have been built and tested using
 [Google models](https://cloud.google.com/vertex-ai/generative-ai/docs/learn/models)
 on Vertex AI. You can test these samples with other models as well. Please refer
-to [ADK Tutorials](https://google.github.io/adk-docs/agents/models/) to use
+to [ADK Tutorials](https://google.github.io/adk-docs/tutorials/) to use
 other models for these samples.
 
 ## 🧱 Repository Structure

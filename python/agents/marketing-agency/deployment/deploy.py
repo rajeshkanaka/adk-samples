@@ -49,7 +49,9 @@ def create() -> None:
             "pydantic (>=2.10.6,<3.0.0)",
             "absl-py (>=2.2.1,<3.0.0)",
         ],
-        #        extra_packages=[""],
+        extra_packages=[
+            "./marketing_agency",
+        ],
     )
     print(f"Created remote agent: {remote_agent.resource_name}")
 

@@ -7,11 +7,14 @@
 # Brand Search Optimization
 /python/agents/brand-search-optimization/ @nikhilkul
 
+# CaMeL
+/python/agents/camel/ @sammalik-lgtm
+
 # Customer Service
 /python/agents/customer-service/ @anifort
 
 # Data Science
-/python/agents/data-science/ @5Y5TEM
+/python/agents/data-science/ @mstyer-google
 
 # Financial Advisor
 /python/agents/financial-advisor/ @gulliantonio

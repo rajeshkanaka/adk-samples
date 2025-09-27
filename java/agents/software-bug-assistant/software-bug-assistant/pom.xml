@@ -27,6 +27,14 @@
                     <mainClass>com.google.adk.web.AdkWebServer</mainClass>
                     <classpathScope>compile</classpathScope>
                 </configuration>
+              <executions>
+                <execution>
+                  <id>run</id>
+                  <configuration>
+                    <mainClass>com.google.adk.samples.agents.softwarebugassistant.SoftwareBugAssistant</mainClass>
+                  </configuration>
+                </execution>
+              </executions>
             </plugin>
 
         </plugins>

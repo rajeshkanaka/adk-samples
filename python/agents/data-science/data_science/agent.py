@@ -48,7 +48,7 @@ def setup_before_agent_call(callback_context: CallbackContext):
     # setting up schema in instruction
     if callback_context.state["all_db_settings"]["use_database"] == "BigQuery":
         callback_context.state["database_settings"] = get_bq_database_settings()
-        schema = callback_context.state["database_settings"]["bq_ddl_schema"]
+        schema = callback_context.state["database_settings"]["bq_schema_and_samples"]
 
         callback_context._invocation_context.agent.instruction = (
             return_instructions_root()
@@ -62,7 +62,7 @@ def setup_before_agent_call(callback_context: CallbackContext):
 
 
 root_agent = Agent(
-    model=os.getenv("ROOT_AGENT_MODEL"),
+    model=os.getenv("ROOT_AGENT_MODEL", "gemini-2.5-flash"),
     name="db_ds_multiagent",
     instruction=return_instructions_root(),
     global_instruction=(

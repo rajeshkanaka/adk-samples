@@ -152,7 +152,6 @@ First, ensure that your AI Studio API key is set as an environment variable:
 ```bash
 export GOOGLE_API_KEY=<your-ai-studio-key>
 ```
-
 Then, run the ADK web UI command. This will download Maven dependencies including ADK Java, compile the agent code, and start a development web server. 
 
 ```
@@ -187,6 +186,10 @@ You should see:
 
 ![](deployment/images/samuel-bugs.png)
 
+If you do not use the ADK Web UI, you can run the agent directly in the console with:
+```
+mvn clean package exec:java@run
+```
 ---------
 ## Deploy to Google Cloud 
 

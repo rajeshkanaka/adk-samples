@@ -10,15 +10,24 @@ authors = [
     {name = "Lavi Nigam", email = "lavinigam@google.com"},
 ]
 dependencies = [
-    "google-adk==1.4.2",
+    "google-adk>=1.8.0",
 ]
 
 requires-python = ">=3.10,<3.13"
 
 [dependency-groups]
-dev = []
+dev = [
+    "pytest~=8.3.2",
+    "pytest-asyncio~=0.23.7",
+    "nest-asyncio>=1.6.0",
+    "agent-starter-pack>=0.14.1",
+]
 
 [project.optional-dependencies]
+
+jupyter = [
+    "jupyter~=1.0.0",
+]
 
 lint = [
     "ruff>=0.4.6",
@@ -82,3 +91,14 @@ asyncio_default_fixture_loop_scope = "function"
 
 [tool.hatch.build.targets.wheel]
 packages = ["app","frontend"]
+
+# This configuration file is used by goo.gle/agent-starter-pack to power remote templating.
+# It defines the template's properties, settings, and deployment options.
+[tool.agent-starter-pack]
+base_template = "adk_base"
+description = "A production-ready fullstack research agent that uses Gemini to strategize, research, and synthesize comprehensive reports with human-in-the-loop collaboration"
+example_question = "A report on the latest Google I/O event"
+
+[tool.agent-starter-pack.settings]
+deployment_targets = ["agent_engine", "cloud_run"]
+interactive_command = "dev"

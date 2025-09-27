@@ -34,7 +34,7 @@ public class ForecastingAgent {
     private static final String MODEL_NAME = "gemini-2.5-flash";
     private static final String MCP_TOOLBOX_SERVER_URL_ENV_VAR = "MCP_TOOLBOX_SERVER_URL";
 
-    public static BaseAgent ROOT_AGENT = initAgent();
+    public static final BaseAgent ROOT_AGENT = initAgent();
 
     /**
      * Loads tools from the MCP server.

@@ -6,6 +6,9 @@ __pycache__/
 # C extensions
 *.so
 
+# IntelliJ IDEA
+.idea/
+
 # Distribution / packaging
 .Python
 build/
@@ -23,6 +26,7 @@ wheels/
 share/python-wheels/
 *.egg-info/
 .installed.cfg
+pyvenv.cfg
 *.egg
 MANIFEST
 *.whl
@@ -136,6 +140,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.env*
 
 # Spyder project settings
 .spyderproject
@@ -176,6 +181,7 @@ cython_debug/
 
 # Others
 .DS_Store
+bin
 
 # Node.js
 node_modules/
@@ -184,6 +190,24 @@ yarn-debug.log
 yarn-error.log
 .pnpm-debug.log
 
+# next.js
+.next/
+
 # Agent Data Files
 python/agents/personalized-shopping/personalized_shopping/shared_libraries/data/
 python/agents/personalized-shopping/personalized_shopping/shared_libraries/search_engine/**
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+
+# Local 'adk web' logs
+adk_web_log.txt
+adk_web_log*.txt
+
+# Local binary directories
+bin/
+
+# Local VSCode settings
+.vscode/

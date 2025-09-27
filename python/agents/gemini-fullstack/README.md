@@ -82,14 +82,14 @@ python -m venv .venv && source .venv/bin/activate # On Windows: .venv\Scripts\ac
 
 # Install the starter pack and create your project
 pip install --upgrade agent-starter-pack
-agent-starter-pack create my-fullstack-agent -a adk_gemini_fullstack
+agent-starter-pack create my-fullstack-agent -a adk@gemini-fullstack
 ```
 <details>
 <summary>⚡️ Alternative: Using uv</summary>
 
 If you have [`uv`](https://github.com/astral-sh/uv) installed, you can create and set up your project with a single command:
 ```bash
-uvx agent-starter-pack create my-fullstack-agent -a adk_gemini_fullstack
+uvx agent-starter-pack create my-fullstack-agent -a adk@gemini-fullstack
 ```
 This command handles creating the project without needing to pre-install the package into a virtual environment.
 </details>

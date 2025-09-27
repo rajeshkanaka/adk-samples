@@ -39,12 +39,12 @@ The key features of the Data Science Multi-Agent include:
 
 *   **Google Cloud Account:** You need a Google Cloud account with BigQuery enabled.
 *   **Python 3.12+:** Ensure you have Python 3.12 or a later version installed.
-*   **Poetry:** Install Poetry by following the instructions on the official Poetry website: [https://python-poetry.org/docs/](https://python-poetry.org/docs/)
+*   **uv:** Install uv by following the instructions on the official uv website: [https://docs.astral.sh/uv/getting-started/installation/](https://docs.astral.sh/uv/getting-started/installation/)
 *   **Git:** Ensure you have git installed. If not, you can download it from [https://git-scm.com/](https://git-scm.com/) and follow the [installation guide](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
 
 
 
-### Project Setup with Poetry
+### Project Setup with uv
 
 1.  **Clone the Repository:**
 
@@ -53,31 +53,30 @@ The key features of the Data Science Multi-Agent include:
     cd adk-samples/python/agents/data-science
     ```
 
-2.  **Install Dependencies with Poetry:**
+2.  **Install Dependencies with uv:**
 
     ```bash
-    poetry install
+    uv sync
     ```
 
-    This command reads the `pyproject.toml` file and installs all the necessary dependencies into a virtual environment managed by Poetry.
+    This command reads the `pyproject.toml` file and installs all the necessary
+    dependencies into a virtual environment managed by uv. On the first run,
+    this command will also create a new virtual environment. By default, the
+    virtual environment will be created in a `.venv` directory inside
+    `adk-samples/python/agents/data-science`. If you already have a virtual
+    environment created, or you want to use a different location, you can use
+    the `--active` flag for `uv` commands, and/or change the
+    `UV_PROJECT_ENVIRONMENT` environment variable. See
+    [How to customize uv's virtual environment location](https://pydevtools.com/handbook/how-to/how-to-customize-uvs-virtual-environment-location/)
+    for more details.
 
-3.  **Activate the Poetry Shell:**
+2.  **Activate the uv Shell:**
+
+    If you are using the `uv` default virtual environment, you now need
+    to activate the environment.
 
     ```bash
-    poetry env activate
-    ```
-
-    This activates the virtual environment, allowing you to run commands within the project's environment. To make sure the environment is active, use for example
-
-    ```bash
-    $> poetry env list
-       data-science-FAlhSuLn-py3.13 (Activated)
-    ```
-
-    If the above command did not activate the environment for you, you can also activate it through
-
-     ```bash
-    source $(poetry env info --path)/bin/activate
+    source .venv/bin/activate
     ```
 
 4.  **Set up Environment Variables:**
@@ -177,12 +176,12 @@ from the working directory:
 1.  Run agent in CLI:
 
     ```bash
-    poetry run adk run data_science
+    uv run adk run data_science
     ```
 
 2.  Run agent with ADK Web UI:
     ```bash
-    poetry run adk web
+    uv run adk web
     ```
     Select the data_science from the dropdown
 
@@ -232,9 +231,9 @@ Here's a quick example of how a user might interact with the Data Science Multi-
 ## Testing and Evaluation
 
 To run the test and evaluation code, you need a few additional dependencies. Run
-the following Poetry command from the `agents/data-science` directory to install them:
+the following uv command from the `agents/data-science` directory to install them:
 ```bash
-poetry install --with=dev
+uv sync
 ```
 
 ### Running Evaluations
@@ -244,13 +243,13 @@ Evaluation tests assess the overall performance and capabilities of the agent in
 
 **Run Evaluation Tests:**
 
-    ```bash
-    poetry run pytest eval
-    ```
+```bash
+uv run pytest eval
+```
 
 
 - This command executes all test files within the `eval/` directory.
-- `poetry run` ensures that pytest runs within the project's virtual environment.
+- `uv run` ensures that pytest runs within the project's virtual environment.
 
 
 
@@ -266,12 +265,12 @@ Tests assess the overall executability of the agents.
 
 **Run Tests:**
 
-    ```bash
-    poetry run pytest tests
-    ```
+```bash
+uv run pytest tests
+```
 
 - This command executes all test files within the `tests/` directory.
-- `poetry run` ensures that pytest runs within the project's virtual environment.
+- `uv run` ensures that pytest runs within the project's virtual environment.
 
 
 
@@ -305,7 +304,7 @@ Next, you need to create a `.whl` file for your agent. From the `data-science`
 directory, run this command:
 
 ```bash
-poetry build --format=wheel --output=deployment
+uv build --wheel --out-dir deployment
 ```
 
 This will create a file named `data_science-0.1-py3-none-any.whl` in the
@@ -404,6 +403,78 @@ python3 deployment/deploy.py --delete --resource_id=RESOURCE_ID
 *   If you see errors in the SQL generated, try the following:
     - including clear descriptions in your tables and columns help boost performance
     - if your database is large, try setting up a RAG pipeline for schema linking by storing your table schema details in a vector store
+
+## Deployment on Google Cloud Run
+
+These instructions walk through the process of deploying the Data Science agent to Google Cloud Run, including Cloud SQL for session storage.
+
+### Before you begin
+
+Deploying to Google Cloud Run requires:
+
+- A [Google Cloud project](https://cloud.google.com/resource-manager/docs/creating-managing-projects) with billing enabled.
+- `gcloud` CLI ([Installation instructions](https://cloud.google.com/sdk/docs/install))
+
+### 1 - Authenticate the Google Cloud CLI, and enable Google Cloud APIs.
+
+```
+gcloud auth login
+gcloud auth application-default login 
+
+export PROJECT_ID="<YOUR_PROJECT_ID>"
+gcloud config set project $PROJECT_ID
+
+gcloud services enable sqladmin.googleapis.com \
+   compute.googleapis.com \
+   cloudresourcemanager.googleapis.com \
+   servicenetworking.googleapis.com \
+   aiplatform.googleapis.com
+```
+
+### 2 - Create a Cloud SQL instance for the agent sessions service.
+
+```bash
+gcloud sql instances create ds-agent-session-service \
+   --database-version=POSTGRES_17 \
+   --tier=db-g1-small \
+   --region=us-central1 \
+   --edition=ENTERPRISE \
+   --root-password=ds-agent-demo
+```
+
+Once created, you can view your instance in the Cloud Console [here](https://console.cloud.google.com/sql/instances/ds-agent-session-service/overview).
+
+### 3 - Deploy the agent to Cloud Run
+Now we are ready to deploy the Data Science agent to Cloud Run! :rocket:
+
+```bash
+gcloud run deploy data-science-agent \
+  --source . \
+  --port 8080 \
+  --memory 2G \
+  --project $PROJECT_ID \
+  --allow-unauthenticated \
+  --add-cloudsql-instances $PROJECT_ID:us-central1:ds-agent-session-service \
+  --update-env-vars SERVE_WEB_INTERFACE=True,SESSION_SERVICE_URI="postgresql+pg8000://postgres:ds-agent-demo@postgres/?unix_sock=/cloudsql/$PROJECT_ID:us-central1:ds-agent-session-service/.s.PGSQL.5432",GOOGLE_CLOUD_PROJECT=$PROJECT_ID \
+  --region us-central1 
+```
+
+When this runs successfully, you should see:
+
+```bash
+Service [data-science-agent] revision [data-science-agent-00001-aaa] has been deployed and is serving 100 percent of traffic.
+```
+
+### 4 - Test the Cloud Run Deployment
+
+Open the Cloud Run Service URL outputted by the previous step.
+You should see the ADK Web UI for the Data Science Agent.
+
+### Clean up
+
+You can clean up this agent sample by:
+- Deleting the [Cloud Run Services](https://console.cloud.google.com/run).
+- Deleting the [Cloud SQL instance](https://console.cloud.google.com/sql/instances).
 
 
 ## Disclaimer

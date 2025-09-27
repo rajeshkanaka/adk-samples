@@ -140,7 +140,7 @@ def create(env_vars: dict[str, str]) -> None:
         adk_app,
         requirements=[AGENT_WHL_FILE],
         extra_packages=[AGENT_WHL_FILE],
-        env_vars=env_vars
+        env_vars=env_vars,
     )
     logger.info("Created remote agent: %s", remote_agent.resource_name)
     print(f"\nSuccessfully created agent: {remote_agent.resource_name}")
@@ -156,7 +156,6 @@ def delete(resource_id: str) -> None:
         print(f"\nSuccessfully deleted agent: {resource_id}")
     except google_exceptions.NotFound:
         logger.error("Agent with resource ID %s not found.", resource_id)
-        print(f"\nAgent{resource_id} not found.")
         print(f"\nAgent not found: {resource_id}")
     except Exception as e:
         logger.error(
@@ -191,6 +190,8 @@ def main(argv: list[str]) -> None:  # pylint: disable=unused-argument
     env_var_keys = [
         "ROOT_AGENT_MODEL",
         "ANALYTICS_AGENT_MODEL", 
+        "ROOT_AGENT_MODEL",
+        "ANALYTICS_AGENT_MODEL",
         "BASELINE_NL2SQL_MODEL",
         "BIGQUERY_AGENT_MODEL",
         "BQML_AGENT_MODEL",
@@ -213,6 +214,28 @@ def main(argv: list[str]) -> None:  # pylint: disable=unused-argument
             logger.info("Skipping empty/None/whitespace-only environment variable: %s (value: %s)", key, repr(value))
 
     logger.info("Environment variables to be passed to agent: %s", list(env_vars.keys()))
+        "NL2SQL_METHOD",
+    ]
+
+    skipped_vars: list[str] = []
+    for key in env_var_keys:
+        value = os.getenv(key)
+        # Only add to env_vars if the value is not None/empty and not just
+        # whitespace
+        if value and value.strip():
+            env_vars[key] = value
+        else:
+            skipped_vars.append(key)
+
+    if skipped_vars:
+        logger.info(
+            "Skipped empty/None/whitespace environment variables: %s",
+            skipped_vars,
+        )
+
+    logger.info(
+        "Environment variables to be passed to agent: %s", list(env_vars.keys())
+    )
 
     logger.info("Using PROJECT: %s", project_id)
     logger.info("Using LOCATION: %s", location)
@@ -220,36 +243,33 @@ def main(argv: list[str]) -> None:  # pylint: disable=unused-argument
 
     # --- Input Validation ---
     if not project_id:
-        print("\nError: Missing required GCP Project ID.")
-        print(
-            "Set the GOOGLE_CLOUD_PROJECT environment variable or use --project_id flag."
+        raise app.UsageError(
+            "Missing required GCP Project ID. Set GOOGLE_CLOUD_PROJECT or "
+            "use --project_id flag."
         )
-        return
     if not location:
-        print("\nError: Missing required GCP Location.")
-        print(
-            "Set the GOOGLE_CLOUD_LOCATION environment variable or use --location flag."
+        raise app.UsageError(
+            "Missing required GCP Location. Set GOOGLE_CLOUD_LOCATION or use "
+            "--location flag."
         )
-        return
     if not bucket_name:
-        print("\nError: Missing required GCS Bucket Name.")
-        print(
-            "Set the GOOGLE_CLOUD_STORAGE_BUCKET environment variable or use --bucket flag."
+        raise app.UsageError(
+            "Missing required GCS Bucket Name. Set GOOGLE_CLOUD_STORAGE_BUCKET "
+            "or use --bucket flag."
         )
-        return
     if not FLAGS.create and not FLAGS.delete:
-        print("\nError: You must specify either --create or --delete flag.")
-        return
-    if FLAGS.delete and not FLAGS.resource_id:
-        print(
-            "\nError: --resource_id is required when using the --delete flag."
+        raise app.UsageError(
+            "You must specify either --create or --delete flag."
         )
-        return
+    if FLAGS.delete and not FLAGS.resource_id:
+        raise app.UsageError(
+            "--resource_id is required when using the --delete flag."
+        )
     # --- End Input Validation ---
 
     try:
         # Setup staging bucket
-        staging_bucket_uri=None
+        staging_bucket_uri = None
         if FLAGS.create:
             staging_bucket_uri = setup_staging_bucket(
                 project_id, location, bucket_name
@@ -259,7 +279,7 @@ def main(argv: list[str]) -> None:  # pylint: disable=unused-argument
         vertexai.init(
             project=project_id,
             location=location,
-            staging_bucket=staging_bucket_uri,  # Staging bucket is passed directly to create/update methods now
+            staging_bucket=staging_bucket_uri,
         )
 
         if FLAGS.create:
@@ -282,11 +302,8 @@ def main(argv: list[str]) -> None:  # pylint: disable=unused-argument
         )
     except Exception as e:
         print(f"\nAn unexpected error occurred: {e}")
-        logger.exception(
-            "Unhandled exception in main:"
-        )  # Log the full traceback
+        logger.exception("Unhandled exception in main:")
 
 
 if __name__ == "__main__":
-
     app.run(main)

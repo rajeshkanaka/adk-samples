@@ -54,7 +54,7 @@ async def compare_statements_tool(tool_context: ToolContext) -> dict[str, str]:
         prev_statement_url, "prev.pdf", tool_context
     )
 
-    if reqd_pdf_path is None or reqd_pdf_path is None:
+    if reqd_pdf_path is None or prev_pdf_path is None:
         logger.error("Failed to download files, aborting")
         return {
             "status": "error",

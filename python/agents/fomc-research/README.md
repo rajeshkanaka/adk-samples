@@ -98,6 +98,12 @@ to implement this workflow.
     ```
 
     Install the FOMC Research agent requirements:
+
+    **Note for Linux users:** If you get an error related to `keyring` during the installation, you can disable it by running the following command:
+    ```bash
+    poetry config keyring.enabled false
+    ```
+    This is a one-time setup.
     ```bash
     poetry install
     ```
